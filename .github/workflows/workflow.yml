@@ -1,13 +1,17 @@
 name: Java CI with Docker # Navnet på workflowet
 
-on: [push, pull_request] # Workflowet udløses ved push- og pull_request-hændelser
+on:
+  push:
+    branches:
+      - main # Udløses ved push til hovedgrenen (kan ændres efter behov)
 
 jobs:
   build_and_deploy: # Definerer et job kaldet 'build_and_deploy'
     runs-on: ubuntu-latest # Jobbet køres på den seneste version af Ubuntu
 
     steps:
-      - uses: actions/checkout@v2 # Tjekker koden ud fra GitHub repository
+      - name: Checkout code # Tjekker koden ud fra GitHub repository
+        uses: actions/checkout@v2
 
       - name: Set up JDK 11 # Opsætter Java Development Kit (JDK) version 11
         uses: actions/setup-java@v2
@@ -27,14 +31,12 @@ jobs:
       - name: Login to Azure # Logger ind på Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }} # Bruger Azure-legitimationsoplysninger fra GitHub secrets
+          creds: ${{ secrets.AZURE_SERVICE_CONNECTION_NAME }} # Bruger Azure Service Connection
 
       - name: Push Docker Image to Azure Container Registry # Pusher Docker-billedet til Azure Container Registry
         run: |
           docker tag myapp:latest myacr.azurecr.io/myapp:latest
           docker push myacr.azurecr.io/myapp:latest
-        env:
-          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }} # Bruger Azure-legitimationsoplysninger
 
       - name: Deploy to Azure Web App # Deployerer til Azure Web App
         uses: azure/webapps-deploy@v2
